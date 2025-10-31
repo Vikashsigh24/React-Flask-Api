@@ -9,12 +9,29 @@ tasks_bp = Blueprint("tasks", __name__)
 @jwt_required()
 def get_tasks():
     user_id = get_jwt_identity()
-    tasks = Task.query.filter_by(user_id=user_id).all()
+    query = request.args.get("search")
+
+    if query:
+        tasks = Task.query.filter(Task.user_id == user_id, Task.title.ilike(f"%{query}%")).all()
+    else:
+        tasks = Task.query.filter_by(user_id=user_id).all()
 
     return jsonify([
         {"id": t.id, "title": t.title, "description": t.description}
         for t in tasks
     ])
+
+@tasks_bp.route("/tasks", methods=["GET"])
+@jwt_required()
+def search_task():
+    user_id = get_jwt_identity()
+    query = request.args.get("search", "")
+    tasks = Task.query.filter(Task.user_id == user_id, Task.title.ilike(f"%{query}%")).all()
+    return jsonify([
+        {"id": t.id, "title": t.title, "description": t.description}
+        for t in tasks])
+
+
 
 @tasks_bp.route("/tasks", methods=["POST"])
 @jwt_required()

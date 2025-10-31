@@ -4,18 +4,29 @@ import API from "../services/api";
 
 export default function Register() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name:"", email:"", password:"" });
+  const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [msg, setMsg] = useState("");
 
-  const handleSubmit = async(e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    await API.post("/register", form);
-    navigate("/login");
+    try {
+      await API.post("/register", form);
+      navigate("/login",
+        { state: { registrationMsg: "Registration successful. Please login." } }
+      );
+    }
+    catch (error) {
+      setMsg("Registration failed. Please try again.");
+      setTimeout(() => setMsg(""), 2000);
+      console.error("Registration failed:", error);
+    }
   };
 
   return (
-    <div className="container mt-5" style={{ maxWidth: "400px" }}>
+    <div className="container mt-5" style={{ maxWidth: "100%" }}>
       <form onSubmit={handleSubmit} className="border p-4 shadow rounded">
         <h2 className="mb-4 text-center">Register</h2>
+        {msg && <div className="alert alert-danger py-2 text-center">{msg}</div>}
 
         <div className="mb-3">
           <input

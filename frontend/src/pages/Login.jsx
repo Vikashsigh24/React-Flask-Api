@@ -1,10 +1,19 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import API from "../services/api";
 
 export default function Login() {
-  const navigate = useNavigate();
   const [form, setForm] = useState({ email: "", password: "" });
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [msg, setMsg] = useState(location.state?.registrationMsg || "");
+
+  useEffect(() => {
+    if(location.state?.registrationMsg){
+      navigate(".", { replace: true, state: {}});
+      setTimeout(() => setMsg(""), 2000);
+    }
+  }, [location.state]);
 
   const handleSubmit = async(e) => {
   e.preventDefault();
@@ -15,16 +24,24 @@ export default function Login() {
     });
 
     localStorage.setItem("token", data.token);
-    navigate("/dashboard");
+    navigate("/dashboard", {
+      state: { loginMsg: "Login Successful" }
+    });
   } catch (err) {
+    setMsg("Login failed. Please check your credentials.");
+    setTimeout(() => setMsg(""), 2000);
     console.log(err.response?.data);
-    alert("Login Failed");
   }
 };
 
 
   return (
     <div className="container mt-5" style={{ maxWidth: "400px" }}>
+      {msg && (
+        <div className="alert alert-success py-2 my-2 text-center">
+          {msg}
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="border p-4 shadow rounded">
         <h2 className="mb-4 text-center">Login</h2>
 
